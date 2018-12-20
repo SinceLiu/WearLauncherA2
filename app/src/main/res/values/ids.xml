@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="text_id_dialer_num" type="id"/>
+    <item name="text_id_mss_num" type="id"/>
+    <item name="btn_id_dialer" type="id"/>
+    <item name="btn_id_mms" type="id"/>
+
+    <!-- add by divhee start -->
+
+    <item name="launcher_viewpager_pager_postion_id" type="id"/>
+
+    <!-- add by divhee end -->
+</resources>

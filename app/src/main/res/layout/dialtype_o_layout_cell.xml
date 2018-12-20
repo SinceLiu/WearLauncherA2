@@ -1,0 +1,66 @@
+<com.readboy.wearlauncher.view.WatchDialTypeO xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/date_tvid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="20px"
+        android:layout_marginRight="20px"
+        android:layout_marginTop="8px"
+        android:textColor="#cccccc"
+        android:textSize="20px" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20px"
+        android:layout_marginRight="20px"
+        android:layout_marginTop="8px"
+        android:layout_alignParentRight="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.readboy.wearlauncher.battery.BatteryLevelTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="20px" />
+
+        <com.readboy.wearlauncher.battery.BatteryLevelImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5px" />
+    </LinearLayout>
+
+    <!--time-->
+    <include
+        layout="@layout/digit_clock_o_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="61px" />
+
+    <TextView
+        android:id="@+id/notice_tvid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="130px"
+        android:text="@string/notice_low_power"
+        android:textColor="#1cc86d"
+        android:textSize="22px" />
+
+    <Button
+        android:id="@+id/btn_id_dialer"
+        android:layout_width="@dimen/dial_d_dialer_width"
+        android:layout_height="@dimen/dial_d_dialer_hight"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="178px"
+        android:background="@drawable/watch_type_black_o_dialer"
+        android:enabled="false" />
+
+</com.readboy.wearlauncher.view.WatchDialTypeO>

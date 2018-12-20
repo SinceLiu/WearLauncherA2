@@ -1,0 +1,184 @@
+ECLIPSE ANDROID PROJECT IMPORT SUMMARY
+======================================
+
+Risky Project Location:
+-----------------------
+The tools *should* handle project locations in any directory. However,
+due to bugs, placing projects in directories containing spaces in the
+path, or characters like ", ' and &, have had issues. We're working to
+eliminate these bugs, but to save yourself headaches you may want to
+move your project to a location where this is not a problem.
+F:\Android Studio WorkSpace\WearLauncherA22
+          -      -                         
+
+Ignored Files:
+--------------
+The following files were *not* copied into the new Gradle project; you
+should evaluate whether these are still needed in your project and if
+so manually move them:
+
+* Android.mk
+* proguard.flags
+* recyclerview\
+* recyclerview\Android.mk
+* recyclerview\AndroidManifest.xml
+* recyclerview\README.txt
+* recyclerview\api\
+* recyclerview\api\22.0.0.txt
+* recyclerview\api\22.1.0.txt
+* recyclerview\api\22.2.0.txt
+* recyclerview\api\22.2.1.txt
+* recyclerview\api\23.txt
+* recyclerview\api\current.txt
+* recyclerview\api\removed.txt
+* recyclerview\build.gradle
+* recyclerview\jvm-tests\
+* recyclerview\jvm-tests\src\
+* recyclerview\jvm-tests\src\android\
+* recyclerview\jvm-tests\src\android\support\
+* recyclerview\jvm-tests\src\android\support\v7\
+* recyclerview\jvm-tests\src\android\support\v7\util\
+* recyclerview\jvm-tests\src\android\support\v7\util\SortedListAdapterCallbackWrapperTest.java
+* recyclerview\jvm-tests\src\android\support\v7\util\SortedListTest.java
+* recyclerview\jvm-tests\src\android\support\v7\widget\
+* recyclerview\jvm-tests\src\android\support\v7\widget\AdapterHelperTest.java
+* recyclerview\jvm-tests\src\android\support\v7\widget\OpReorderTest.java
+* recyclerview\libs\
+* recyclerview\libs\android-support-v4.jar
+* recyclerview\res-public\
+* recyclerview\res-public\values\
+* recyclerview\res-public\values\public_attrs.xml
+* recyclerview\res\
+* recyclerview\res\values\
+* recyclerview\res\values\attrs.xml
+* recyclerview\res\values\dimens.xml
+* recyclerview\res\values\ids.xml
+* recyclerview\src\
+* recyclerview\src\android\
+* recyclerview\src\android\support\
+* recyclerview\src\android\support\v7\
+* recyclerview\src\android\support\v7\util\
+* recyclerview\src\android\support\v7\util\AsyncListUtil.java
+* recyclerview\src\android\support\v7\util\MessageThreadUtil.java
+* recyclerview\src\android\support\v7\util\SortedList.java
+* recyclerview\src\android\support\v7\util\ThreadUtil.java
+* recyclerview\src\android\support\v7\util\TileList.java
+* recyclerview\src\android\support\v7\widget\
+* recyclerview\src\android\support\v7\widget\AdapterHelper.java
+* recyclerview\src\android\support\v7\widget\ChildHelper.java
+* recyclerview\src\android\support\v7\widget\DefaultItemAnimator.java
+* recyclerview\src\android\support\v7\widget\GridLayoutManager.java
+* recyclerview\src\android\support\v7\widget\LayoutState.java
+* recyclerview\src\android\support\v7\widget\LinearLayoutManager.java
+* recyclerview\src\android\support\v7\widget\LinearSmoothScroller.java
+* recyclerview\src\android\support\v7\widget\OpReorderer.java
+* recyclerview\src\android\support\v7\widget\OrientationHelper.java
+* recyclerview\src\android\support\v7\widget\PositionMap.java
+* recyclerview\src\android\support\v7\widget\RecyclerView.java
+* recyclerview\src\android\support\v7\widget\RecyclerViewAccessibilityDelegate.java
+* recyclerview\src\android\support\v7\widget\ScrollbarHelper.java
+* recyclerview\src\android\support\v7\widget\StaggeredGridLayoutManager.java
+* recyclerview\src\android\support\v7\widget\helper\
+* recyclerview\src\android\support\v7\widget\helper\ItemTouchHelper.java
+* recyclerview\src\android\support\v7\widget\helper\ItemTouchUIUtil.java
+* recyclerview\src\android\support\v7\widget\helper\ItemTouchUIUtilImpl.java
+* recyclerview\src\android\support\v7\widget\overscroll\
+* recyclerview\src\android\support\v7\widget\overscroll\HorizontalOverScrollBounceEffectDecorator.java
+* recyclerview\src\android\support\v7\widget\overscroll\IOverScrollDecor.java
+* recyclerview\src\android\support\v7\widget\overscroll\IOverScrollState.java
+* recyclerview\src\android\support\v7\widget\overscroll\IOverScrollStateListener.java
+* recyclerview\src\android\support\v7\widget\overscroll\IOverScrollUpdateListener.java
+* recyclerview\src\android\support\v7\widget\overscroll\ListenerStubs.java
+* recyclerview\src\android\support\v7\widget\overscroll\OverScrollBounceEffectDecoratorBase.java
+* recyclerview\src\android\support\v7\widget\overscroll\OverScrollDecoratorHelper.java
+* recyclerview\src\android\support\v7\widget\overscroll\VerticalOverScrollBounceEffectDecorator.java
+* recyclerview\src\android\support\v7\widget\overscroll\adapters\
+* recyclerview\src\android\support\v7\widget\overscroll\adapters\AbsListViewOverScrollDecorAdapter.java
+* recyclerview\src\android\support\v7\widget\overscroll\adapters\HorizontalScrollViewOverScrollDecorAdapter.java
+* recyclerview\src\android\support\v7\widget\overscroll\adapters\IOverScrollDecoratorAdapter.java
+* recyclerview\src\android\support\v7\widget\overscroll\adapters\RecyclerViewOverScrollDecorAdapter.java
+* recyclerview\src\android\support\v7\widget\overscroll\adapters\ScrollViewOverScrollDecorAdapter.java
+* recyclerview\src\android\support\v7\widget\overscroll\adapters\StaticOverScrollDecorAdapter.java
+* recyclerview\src\android\support\v7\widget\overscroll\adapters\ViewPagerOverScrollDecorAdapter.java
+* recyclerview\src\android\support\v7\widget\util\
+* recyclerview\src\android\support\v7\widget\util\SortedListAdapterCallback.java
+* recyclerview\tests\
+* recyclerview\tests\Android.mk
+* recyclerview\tests\AndroidManifest.xml
+* recyclerview\tests\res\
+* recyclerview\tests\res\layout\
+* recyclerview\tests\res\layout\inflation_test.xml
+* recyclerview\tests\res\layout\wrapped_test_rv.xml
+* recyclerview\tests\src\
+* recyclerview\tests\src\android\
+* recyclerview\tests\src\android\support\
+* recyclerview\tests\src\android\support\v7\
+* recyclerview\tests\src\android\support\v7\recyclerview\
+* recyclerview\tests\src\android\support\v7\recyclerview\test\
+* recyclerview\tests\src\android\support\v7\recyclerview\test\CustomLayoutManager.java
+* recyclerview\tests\src\android\support\v7\recyclerview\test\PrivateLayoutManager.java
+* recyclerview\tests\src\android\support\v7\util\
+* recyclerview\tests\src\android\support\v7\util\AsyncListUtilTest.java
+* recyclerview\tests\src\android\support\v7\util\MessageQueueTest.java
+* recyclerview\tests\src\android\support\v7\util\ThreadUtilTest.java
+* recyclerview\tests\src\android\support\v7\util\TileListTest.java
+* recyclerview\tests\src\android\support\v7\widget\
+* recyclerview\tests\src\android\support\v7\widget\AsyncListUtilLayoutTest.java
+* recyclerview\tests\src\android\support\v7\widget\BaseRecyclerViewInstrumentationTest.java
+* recyclerview\tests\src\android\support\v7\widget\BucketTest.java
+* recyclerview\tests\src\android\support\v7\widget\DefaultItemAnimatorTest.java
+* recyclerview\tests\src\android\support\v7\widget\GridLayoutManagerTest.java
+* recyclerview\tests\src\android\support\v7\widget\LinearLayoutManagerTest.java
+* recyclerview\tests\src\android\support\v7\widget\LoggingItemAnimator.java
+* recyclerview\tests\src\android\support\v7\widget\RecyclerViewAccessibilityTest.java
+* recyclerview\tests\src\android\support\v7\widget\RecyclerViewAnimationsTest.java
+* recyclerview\tests\src\android\support\v7\widget\RecyclerViewBasicTest.java
+* recyclerview\tests\src\android\support\v7\widget\RecyclerViewLayoutTest.java
+* recyclerview\tests\src\android\support\v7\widget\StaggeredGridLayoutManagerTest.java
+* recyclerview\tests\src\android\support\v7\widget\TestActivity.java
+* recyclerview\tests\src\android\support\v7\widget\TestedFrameLayout.java
+* recyclerview\tests\src\android\support\v7\widget\WrappedRecyclerView.java
+* recyclerview\tests\src\android\support\v7\widget\helper\
+* recyclerview\tests\src\android\support\v7\widget\helper\ItemTouchHelperTest.java
+* recyclerview\tests\src\android\support\v7\widget\test\
+* recyclerview\tests\src\android\support\v7\widget\test\RecyclerViewTest.java
+* recyclerview\tests\src\android\support\v7\widget\test\RecyclerViewTestActivity.java
+
+Replaced Jars with Dependencies:
+--------------------------------
+The importer recognized the following .jar files as third party
+libraries and replaced them with Gradle dependencies instead. This has
+the advantage that more explicit version information is known, and the
+libraries can be updated automatically. However, it is possible that
+the .jar file in your project was of an older version than the
+dependency we picked, which could render the project not compileable.
+You can disable the jar replacement in the import wizard and try again:
+
+android-support-v4.jar => com.android.support:support-v4:26.0.0-alpha1
+android-support-v7-appcompat.jar => com.android.support:appcompat-v7:26.0.0-alpha1
+
+Moved Files:
+------------
+Android Gradle projects use a different directory structure than ADT
+Eclipse projects. Here's how the projects were restructured:
+
+* AndroidManifest.xml => app\src\main\AndroidManifest.xml
+* assets\ => app\src\main\assets\
+* libs\android-support-v13.jar => app\libs\android-support-v13.jar
+* res\ => app\src\main\res\
+* src\ => app\src\main\java\
+
+Next Steps:
+-----------
+You can now build the project. The Gradle project needs network
+connectivity to download dependencies.
+
+Bugs:
+-----
+If for some reason your project does not build, and you determine that
+it is due to a bug or limitation of the Eclipse to Gradle importer,
+please file a bug at http://b.android.com with category
+Component-Tools.
+
+(This import summary is for your information only, and can be deleted
+after import once you are satisfied with the results.)
