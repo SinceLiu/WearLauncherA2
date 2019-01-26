@@ -21,13 +21,10 @@ public class ViewPagerOverScrollDecorAdapter implements IOverScrollDecoratorAdap
     protected int mLastPagerPosition = 0;
     protected float mLastPagerScrollOffset;
 
-    private ViewPager.OnPageChangeListener mOldListener;
-
-    public ViewPagerOverScrollDecorAdapter(ViewPager viewPager, ViewPager.OnPageChangeListener oldListener) {
+    public ViewPagerOverScrollDecorAdapter(ViewPager viewPager) {
         this.mViewPager = viewPager;
 
-        mOldListener = oldListener;
-        mViewPager.setOnPageChangeListener(this);
+        mViewPager.addOnPageChangeListener(this);
 
         mLastPagerPosition = mViewPager.getCurrentItem();
         mLastPagerScrollOffset = 0f;
@@ -56,23 +53,15 @@ public class ViewPagerOverScrollDecorAdapter implements IOverScrollDecoratorAdap
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         mLastPagerPosition = position;
         mLastPagerScrollOffset = positionOffset;
-
-        if (mOldListener!=null){
-            mOldListener.onPageScrolled(position, positionOffset, positionOffsetPixels);
-        }
     }
 
     @Override
     public void onPageSelected(int position) {
-        if (mOldListener!=null){
-            mOldListener.onPageSelected(position);
-        }
+
     }
 
     @Override
     public void onPageScrollStateChanged(int state) {
-        if (mOldListener!=null){
-            mOldListener.onPageScrollStateChanged(state);
-        }
+
     }
 }

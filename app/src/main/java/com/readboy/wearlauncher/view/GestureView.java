@@ -2,6 +2,9 @@ package com.readboy.wearlauncher.view;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.AttrRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -23,11 +26,11 @@ public class GestureView extends FrameLayout{
     private Context mContext;
     private boolean mIsGestureDrag;
 
-    public GestureView(Context context) {
+    public GestureView(@NonNull Context context) {
         this(context,null);
     }
 
-    public GestureView(Context context, AttributeSet attrs) {
+    public GestureView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
         mGestureDetector = new GestureDetector(context,new DefaultGestureListener());

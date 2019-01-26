@@ -32,11 +32,10 @@ import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
  */
 
 public class WatchAppGridView extends RelativeLayout implements WatchController.ClassDisableChangedCallback {
-    private static final String TAG = "WatchAppGridView";
 
     Context mContext;
     private LauncherApplication mApplication;
-    GridView mGridView;
+    MyGridView mGridView;
     GridAdapter mGridAdapter;
     ImageView mImageView;
     private LayoutInflater mInflater;
@@ -44,11 +43,8 @@ public class WatchAppGridView extends RelativeLayout implements WatchController.
 
     List<AppInfo> mAppList = new ArrayList<AppInfo>();
 
-    private int lastPos = 0;
-    private int lastOffset = 0;
-
     public WatchAppGridView(Context context) {
-        this(context,null);
+        this(context, null);
     }
 
     public WatchAppGridView(Context context, AttributeSet attrs) {
@@ -60,27 +56,27 @@ public class WatchAppGridView extends RelativeLayout implements WatchController.
         mWatchController = mApplication.getWatchController();
     }
 
-    public void moveToTop(){
-        if(mGridView != null){
-            mGridView.smoothScrollToPositionFromTop(0,0);
+    public void moveToTop() {
+        if (mGridView != null) {
+            mGridView.smoothScrollToPositionFromTop(0, 0);
         }
     }
 
-    public void refreshData(ArrayList<AppInfo> data){
+    public void refreshData(ArrayList<AppInfo> data) {
         mAppList.clear();
         mAppList = data;
         mGridAdapter.notifyDataSetChanged();
     }
 
-    public AppInfo getAppInfo(int position){
+    public AppInfo getAppInfo(int position) {
         return mGridView != null ? mAppList.get(position) : null;
     }
 
-    public void setClassDisableShow(boolean show){
-        if(show){
+    public void setClassDisableShow(boolean show) {
+        if (show) {
             mImageView.setVisibility(View.VISIBLE);
             mGridView.setVisibility(View.INVISIBLE);
-        }else {
+        } else {
             mImageView.setVisibility(View.GONE);
             mGridView.setVisibility(View.VISIBLE);
         }
@@ -90,19 +86,16 @@ public class WatchAppGridView extends RelativeLayout implements WatchController.
     protected void onFinishInflate() {
         super.onFinishInflate();
         mImageView = (ImageView) findViewById(R.id.imageView);
-        mGridView = (GridView) findViewById(R.id.grid_vid);
-        OverScrollDecoratorHelper.setUpOverScroll(mGridView);
+        mGridView = (MyGridView) findViewById(R.id.grid_vid);
+//        OverScrollDecoratorHelper.setUpOverScroll(mGridView);
         mGridAdapter = new GridAdapter();
         mGridView.setAdapter(mGridAdapter);
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(mOnClickItemListener != null){
+                if (mOnClickItemListener != null) {
                     mOnClickItemListener.onClick(position);
                 }
-
-                lastPos = mGridView.getFirstVisiblePosition();
-                lastOffset = (int) mGridView.getChildAt(0).getY();
             }
         });
     }
@@ -111,17 +104,7 @@ public class WatchAppGridView extends RelativeLayout implements WatchController.
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         mWatchController.addClassDisableChangedCallback(this);
-
-        setVisibility(INVISIBLE);
         mGridView.requestFocus();
-
-        mGridView.post(new Runnable() {
-            @Override
-            public void run() {
-                mGridView.smoothScrollToPositionFromTop(lastPos, lastOffset, 0);
-                setVisibility(VISIBLE);
-            }
-        });
     }
 
     @Override
@@ -132,7 +115,7 @@ public class WatchAppGridView extends RelativeLayout implements WatchController.
 
     private OnClickItemListener mOnClickItemListener;
 
-    public void setOnClickItemListener(OnClickItemListener listener){
+    public void setOnClickItemListener(OnClickItemListener listener) {
         mOnClickItemListener = listener;
     }
 
@@ -149,8 +132,9 @@ public class WatchAppGridView extends RelativeLayout implements WatchController.
     class GridAdapter extends BaseAdapter {
 
         IconCache mTconCache;
+
         public GridAdapter() {
-            mTconCache = ((LauncherApplication)LauncherApplication.getApplication()).getIconCache();
+            mTconCache = ((LauncherApplication) LauncherApplication.getApplication()).getIconCache();
         }
 
         @Override
@@ -184,18 +168,18 @@ public class WatchAppGridView extends RelativeLayout implements WatchController.
             final AppInfo appInfo = mAppList.get(position);
 //            viewTag.mName.setText(appInfo.mAppName);
 //            viewTag.mIcon.applyFromShortcutInfo(appInfo,mTconCache);
-            viewTag.mIconTextView.applyFromShortcutInfo(appInfo,mTconCache);
+            viewTag.mIconTextView.applyFromShortcutInfo(appInfo, mTconCache);
 
             return convertView;
         }
 
-        class ItemViewTag
-        {
+        class ItemViewTag {
             protected IconTextView mIconTextView;
             protected IconImageView mIcon;
             protected TextView mName;
 
-            public ItemViewTag(){}
+            public ItemViewTag() {
+            }
         }
     }
 }

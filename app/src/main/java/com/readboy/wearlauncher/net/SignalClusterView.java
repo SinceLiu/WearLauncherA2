@@ -233,7 +233,12 @@ public class SignalClusterView extends LinearLayout
                 mNetworkNameView.setVisibility(View.VISIBLE);
                 mNetworkNameView.setText(mNetworkName);
             }
-            mVolteView.setImageResource(mVolteStatusIcon);
+            if(mVolteStatusIcon==0){
+                mVolteView.setVisibility(View.GONE);
+            }else {
+                mVolteView.setVisibility(View.VISIBLE);
+                mVolteView.setImageResource(mVolteStatusIcon);
+            }
 
             mMobileGroup.setContentDescription(mMobileTypeDescription + " " + mMobileDescription);
             mMobileGroup.setVisibility(View.VISIBLE);

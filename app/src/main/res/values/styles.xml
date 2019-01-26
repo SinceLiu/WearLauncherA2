@@ -10,7 +10,7 @@
     </style>
 
     <!-- <style name="NotificationTheme" parent="android:Theme.Material.NoActionBar.Fullscreen" > -->
-	<style name="NotificationTheme" parent="android:Theme.Wallpaper.NoTitleBar.Fullscreen" >
+	<style name="NotificationTheme" parent="android:Theme.NoTitleBar.Fullscreen" >
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:cacheColorHint">@null</item>
         <item name="android:windowIsTranslucent">true</item>
@@ -19,6 +19,11 @@
     </style>
 
     <style name="Animation"/>
+
+    <style name="NotifcationAnimation">
+        <item name="android:windowEnterAnimation">@anim/notification_enter_top</item>
+        <item name="android:windowExitAnimation">@anim/notification_exit_top</item>
+    </style>
 
     <style name="Animation.Top">
         <item name="android:windowEnterAnimation">@anim/activity_enter_top</item>

@@ -44,7 +44,7 @@ public class WatchController extends BroadcastReceiver {
     //class disable
     public static final String TAG_CLASS_DISABLED = "class_disabled";
     public static final String TAG_CLASS_DISABLED_TIME = "class_disable_time";
-    public static final String READBOY_ACTION_CLASS_DISABLE_CHANGED = "readboy.acion.CLASS_DISABLE_CHANGED";
+    public static final String READBOY_ACTION_CLASS_DISABLE_CHANGED = "readboy.action.CLASS_DISABLE_CHANGED";
     private static final SimpleDateFormat mDateFormat = new SimpleDateFormat("HH:mm");
     //Weather
     public static final String ACTION_WEATHER_RESULT = "com.readboy.wearlauncher.weather.WEATHER_RESULT";
@@ -423,7 +423,7 @@ public class WatchController extends BroadcastReceiver {
                     }
                     return;
                 case WETALK_MSG_WHAT:
-                    Log.i(TAG,"miss wetalk mun :"+msg.arg1);
+                    Log.i(TAG,"miss wetalk mun :"+msg.arg1  + " mWeTalkUnreadChangedCallback :"+mWeTalkUnreadChangedCallback);
                     for(WeTalkUnreadChangedCallback callback : mWeTalkUnreadChangedCallback) {
                         callback.onWeTalkUnreadChanged(+msg.arg1);
                     }

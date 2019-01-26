@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.support.annotation.Nullable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -23,11 +24,11 @@ public class MyTextView extends TextView{
         this(context,null);
     }
 
-    public MyTextView(Context context, AttributeSet attrs) {
+    public MyTextView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs,0);
     }
 
-    public MyTextView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public MyTextView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mTextPaint = getPaint();
         TEXT = getText().toString();

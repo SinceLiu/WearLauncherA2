@@ -133,6 +133,7 @@ public class Utils {
             if(TextUtils.equals(DialBaseLayout.DIALER_PACKAGE_NAME,pkg) &&
                     ((LauncherApplication) LauncherApplication.getApplication()).getWatchController().getMissCallCountImmediately() > 0){
                 intent.setType(android.provider.CallLog.Calls.CONTENT_TYPE);
+                intent.putExtra("index",2);
             }
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                     Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);

@@ -274,7 +274,7 @@ public abstract class OverScrollBounceEffectDecoratorBase implements IOverScroll
             translateView(view, newOffset);
             mUpdateListener.onOverScrollUpdate(OverScrollBounceEffectDecoratorBase.this, mCurrDragState, newOffset);
 
-            return false;
+            return true;
         }
 
         @Override

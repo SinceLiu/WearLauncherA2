@@ -163,9 +163,15 @@ public class NotificationActivity extends Activity {
     };
     //打开工厂模式
     private static void openFactoryMode(Context context) {
-        Intent intent = new Intent("android.provider.Telephony.SECRET_CODE",
-                Uri.parse("android_secret_code://" + "83789"));
-        context.sendBroadcast(intent);
+//        Intent intent = new Intent("android.provider.Telephony.SECRET_CODE",
+//                Uri.parse("android_secret_code://" + "83789"));
+//        context.sendBroadcast(intent);
+        Intent factoryModeIntent = new Intent();
+        factoryModeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        factoryModeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        ComponentName componentName = new ComponentName("com.mediatek.factorymode", "com.mediatek.factorymode.FactoryMode");
+        factoryModeIntent.setComponent(componentName);
+        context.startActivity(factoryModeIntent);
     }
 /// @}
 
@@ -464,7 +470,7 @@ public class NotificationActivity extends Activity {
         }
 
         @Override
-        public int getItemViewType(int position) {
+        public int getItemViewType(int position){
             StatusBarNotification statusBarNotification = mNotificationList.get(position);
             Notification notification = statusBarNotification.getNotification();
             int progress = notification.extras.getInt(Notification.EXTRA_PROGRESS, -1);
@@ -584,7 +590,6 @@ public class NotificationActivity extends Activity {
     class NotificationViewHolder extends RecyclerView.ViewHolder {
         private static final String TAG = "NotificationViewHolder";
 
-        private View itemView;
         private ImageView mIcon;
         private TextView mTitle;
         private DateTimeView mTimeView;

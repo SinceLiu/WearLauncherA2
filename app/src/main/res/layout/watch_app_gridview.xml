@@ -5,7 +5,7 @@
     android:background="#000000">
     <!--android:background="@drawable/app_list_bg"-->
 
-    <GridView
+    <com.readboy.wearlauncher.view.MyGridView
         android:id="@+id/grid_vid"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -21,8 +21,7 @@
         android:gravity="center"
         android:scrollbars="none"
         android:keycode="KEYCODE_UNKNOWN"
-        android:listSelector="@android:color/transparent"
-        android:overScrollMode="never"/>
+        android:listSelector="@android:color/transparent"/>
 
     <ImageView
         android:id="@+id/imageView"

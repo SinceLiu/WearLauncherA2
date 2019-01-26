@@ -2,33 +2,31 @@ package com.readboy.wearlauncher;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.NotificationManager;
+import android.app.readboy.PersonalInfo;
+import android.app.readboy.ReadboyWearManager;
+import android.app.readboy.IReadboyWearListener;
 import android.content.ComponentName;
 import android.content.Context;
-
-import com.readboy.wearlauncher.dialog.InstructionsDialog;
-import com.readboy.wearlauncher.notification.NotificationActivity;
-import com.readboy.wearlauncher.application.AppsLoader;
-
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -41,8 +39,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.readboy.wearlauncher.application.AppInfo;
+import com.readboy.wearlauncher.application.AppsLoader;
 import com.readboy.wearlauncher.battery.BatteryController;
 import com.readboy.wearlauncher.dialog.ClassDisableDialog;
+import com.readboy.wearlauncher.dialog.InstructionsDialog;
+import com.readboy.wearlauncher.notification.NotificationActivity;
 import com.readboy.wearlauncher.utils.Utils;
 import com.readboy.wearlauncher.utils.WatchController;
 import com.readboy.wearlauncher.view.DaialParentLayout;
@@ -57,19 +58,18 @@ import java.util.Calendar;
 import java.util.List;
 
 import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
-import android.app.readboy.ReadboyWearManager;
-import android.app.readboy.PersonalInfo;
 
 
 public class Launcher extends FragmentActivity implements BatteryController.BatteryStateChangeCallback,
-        GestureView.MyGestureListener, WatchAppGridView.OnClickItemListener, LoaderManager.LoaderCallbacks<ArrayList<AppInfo>>,WatchController.ClassDisableChangedCallback,
-        WatchController.ScreenOff, ViewPager.OnPageChangeListener {
+        GestureView.MyGestureListener, WatchAppGridView.OnClickItemListener, LoaderManager.LoaderCallbacks<ArrayList<AppInfo>>, WatchController.ClassDisableChangedCallback,
+        WatchController.ScreenOff {
     public static final String TAG = Launcher.class.getSimpleName();
 
     private LauncherApplication mApplication;
     private FragmentManager mFragmentManager;
 
     private static final int LOADER_ID = 0x10;
+    private static final int WAIT_IRWS = 0;
 
     private GestureView mGestureView;
     DialBaseLayout mLowDialBaseLayout;
@@ -90,13 +90,17 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
     BatteryController mBatteryController;
     int mBatteryLevel = -1;
 
+    private boolean bIsPaused = false;
     private boolean bIsClassDisable = false;
     private boolean bIsTouchable = false;
 
     private TelephonyManager mTelephonyManager;
+    private ReadboyWearManager rwm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.e(TAG, "onCreate()");
         setContentView(R.layout.activity_launcher);
         //screen width:240、height:240,density:0.75,densityDpi:120
 
@@ -122,12 +126,12 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         mLowDialBaseLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction() == MotionEvent.ACTION_DOWN){
-                    if(mToast == null){
-                        mToast = Toast.makeText(Launcher.this,R.string.notice_low_power_for_phone,Toast.LENGTH_SHORT);
-                        mToast.setGravity(Gravity.CENTER,0,0);
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    if (mToast == null) {
+                        mToast = Toast.makeText(Launcher.this, R.string.notice_low_power_for_phone, Toast.LENGTH_SHORT);
+                        mToast.setGravity(Gravity.CENTER, 0, 0);
                         TextView textView = (TextView) mToast.getView().findViewById(android.R.id.message);
-                        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP,22);
+                        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
                     }
                     mToast.setText(R.string.notice_low_power_for_phone);
                     mToast.show();
@@ -136,16 +140,16 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
             }
         });
 
-        mNegativeView = (NegativeScreen) mInflater.inflate(R.layout.negative_screen,null);
+        mNegativeView = (NegativeScreen) mInflater.inflate(R.layout.negative_screen, null);
 
         mDaialView = (DaialParentLayout) mInflater.inflate(R.layout.watch_dial_layout, null);
         mDaialView.removeAllViews();
-        DialBaseLayout childDaialView = (DialBaseLayout) mInflater.inflate(WatchDials.mDialList.get(mWatchType%WatchDials.mDialList.size()), mDaialView, false);
+        DialBaseLayout childDaialView = (DialBaseLayout) mInflater.inflate(WatchDials.mDialList.get(mWatchType % WatchDials.mDialList.size()), mDaialView, false);
         childDaialView.addChangedCallback();
         childDaialView.onResume();
         childDaialView.setButtonEnable();
         mDaialView.addView(childDaialView);
-        mAppView = (WatchAppGridView) mInflater.inflate(R.layout.watch_app_gridview,null);
+        mAppView = (WatchAppGridView) mInflater.inflate(R.layout.watch_app_gridview, null);
         mAppView.setOnClickItemListener(this);
         mViewList.clear();
         mViewList.add(mNegativeView);
@@ -153,59 +157,93 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         mViewList.add(mAppView);
         loadApps(false);
         mViewpager = (ViewPager) findViewById(R.id.viewpager);
+        mViewpager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (position == 1) {
+                    mAppView.moveToTop();
+                    mNegativeView.moveToTop();
+                    if (!bIsPaused && mDaialView != null) {
+                        View view = mDaialView.getChildAt(0);
+                        if (view instanceof DialBaseLayout) {
+                            ((DialBaseLayout) view).onResume();
+                        }
+                    }
+                } else if (mDaialView != null) {
+                    View view = mDaialView.getChildAt(0);
+                    if (view instanceof DialBaseLayout) {
+                        ((DialBaseLayout) view).onPause();
+                    }
+                }
+                if (bIsClassDisable && position == 2) {
+                    mHandler.removeMessages(0x10);
+                    mHandler.sendEmptyMessageDelayed(0x10, 1000 * 2);
+                }
+
+                // add by divhee start
+                if (mViewPagerAdpater != null) {
+                    mViewPagerAdpater.setNowPagerNumber(position);
+                }
+                // add by divhee end
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                mViewPagerScrollState = state;
+            }
+        });
         mViewPagerAdpater = new ViewPagerAdpater(mViewList);
         mViewpager.setAdapter(mViewPagerAdpater);
         mViewpager.setOffscreenPageLimit(3);
         mViewpager.setCurrentItem(1);
-        OverScrollDecoratorHelper.setUpOverScroll(mViewpager, this);
+        OverScrollDecoratorHelper.setUpOverScroll(mViewpager);
         mWatchController.setScreenOffListener(this);
         //startPowerAnimService();
         //Utils.setFirstBoot(Launcher.this,true);
-        if(Utils.isFirstBoot(Launcher.this)){
+        if (Utils.isFirstBoot(Launcher.this)) {
             InstructionsDialog.showInstructionsDialog(Launcher.this);
         }
+        rwm = (ReadboyWearManager) Launcher.this.getSystemService(Context.RBW_SERVICE);
+        waitIRWS();
     }
 
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        Log.e("cwj", "onPageScrolled mViewPagerScrollState:"+mViewPagerScrollState);
-
-    }
-    @Override
-    public void onPageSelected(int position) {
-        Log.e("cwj", "onPageSelected mViewPagerScrollState:"+mViewPagerScrollState);
-        if(position == 1){
-            mAppView.moveToTop();
-            mNegativeView.moveToTop();
+    //等待IReadboyWearService
+    public void waitIRWS() {
+        if (rwm.getPersonalInfo() != null) {
+            if (rwm.isClassForbidOpen()) {
+                mAppView.setClassDisableShow(true);
+                onClassDisableChange(true);
+            }
+            myHandler.removeMessages(WAIT_IRWS);
+            myHandler = null;
+        } else {
+            myHandler.removeMessages(WAIT_IRWS);
+            myHandler.sendEmptyMessageDelayed(WAIT_IRWS, 100);
         }
-        if(bIsClassDisable && position == 2){
-            mHandler.removeMessages(0x10);
-            mHandler.sendEmptyMessageDelayed(0x10,1000*2);
-        }
-        // add by divhee start
-        if (mViewPagerAdpater != null) {
-            mViewPagerAdpater.setNowPagerNumber(position);
-        }
-        // add by divhee end
-    }
-    @Override
-    public void onPageScrollStateChanged(int state) {
-        mViewPagerScrollState = state;
-        Log.e("cwj", "onPageScrollStateChanged mViewPagerScrollState:"+mViewPagerScrollState);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        ClassDisableDialog.recycle();
+        Log.e(TAG, "onDestroy() ");
         mWatchController.removeClassDisableChangedCallback(this);
         mBatteryController.unregisterReceiver();
         mBatteryController.removeStateChangedCallback(this);
+        mHandler.removeCallbacksAndMessages(null);
+        myHandler.removeCallbacksAndMessages(null);
+        ClassDisableDialog.recycle();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         bIsTouchable = false;
+        bIsPaused = true;
         closeDials(false);
         dialPasue();
     }
@@ -213,7 +251,6 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
     @Override
     protected void onResume() {
         super.onResume();
-
         loadApps(true);
 
         // add by divhee start
@@ -223,6 +260,7 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         // add by divhee end
 
         bIsTouchable = true;
+        bIsPaused = false;
         LauncherApplication.setTouchEnable(true);
         forceUpdateDate();
         dialResume();
@@ -235,15 +273,15 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        if(ev.getAction() == MotionEvent.ACTION_DOWN) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             /*Log.d(TAG, String.format("Action down (%f,%f)", ev.getRawX(), ev.getRawY()));*/
-            Log.d(TAG,"Action down (" +ev.getRawX()+","+ev.getRawY()+")");
+            Log.d(TAG, "Action down (" + ev.getRawX() + "," + ev.getRawY() + ")");
         }
-        if(!LauncherApplication.isTouchEnable() || !bIsTouchable){
+        if (!LauncherApplication.isTouchEnable() || !bIsTouchable) {
             return true;
         }
-        if(Utils.isFirstBoot(Launcher.this)){
-            if(ev.getAction() == MotionEvent.ACTION_UP){
+        if (Utils.isFirstBoot(Launcher.this)) {
+            if (ev.getAction() == MotionEvent.ACTION_UP) {
                 InstructionsDialog.showInstructionsDialog(Launcher.this);
             }
             return true;
@@ -253,27 +291,28 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
 
     @Override
     public void onClassDisableChange(boolean show) {
-        Log.e("cwj", "onClassDisableChange: show="+show);
-        if(bIsClassDisable != show){
+        Log.e("cwj", "onClassDisableChange: show=" + show);
+        if (bIsClassDisable != show) {
             bIsClassDisable = show;
             /*ReadboyWearManager rwm = (ReadboyWearManager)Launcher.this.getSystemService(Context.RBW_SERVICE);
             rwm.setClassForbidOpen(show);*/
-            if(bIsClassDisable){
-                if(needGoToHOme(Launcher.this,0)){
-                    startActivity(new Intent(Launcher.this,Launcher.class));
+            if (bIsClassDisable) {
+                closeDials(false);
+                if (needGoToHome(Launcher.this, 0)) {
+                    startActivity(new Intent(Launcher.this, Launcher.class));
                 }
                 mHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        if(needGoToHOme(Launcher.this,0)){
-                            startActivity(new Intent(Launcher.this,Launcher.class));
+                        if (needGoToHome(Launcher.this, 0)) {
+                            startActivity(new Intent(Launcher.this, Launcher.class));
                         }
                     }
-                },500);
-                if(mGestureView != null && mGestureView.getVisibility() == View.VISIBLE && mViewpager.getCurrentItem() != 1){
+                }, 500);
+                if (mGestureView != null && mGestureView.getVisibility() == View.VISIBLE && mViewpager.getCurrentItem() != 1) {
                     mViewpager.setCurrentItem(1);
                 }
-                if(isHome(Launcher.this)){
+                if (isHome(Launcher.this)) {
                     ClassDisableDialog.showClassDisableDialog(Launcher.this);
                 }
                 mHandler.postDelayed(new Runnable() {
@@ -281,22 +320,24 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
                     public void run() {
                         Utils.checkAndDealWithAirPlanMode(Launcher.this);
                     }
-                },1000);
-            }else {
+                }, 1000);
+            } else {
                 mHandler.removeMessages(0x10);
             }
         }
     }
 
     int lowPowerLevel = 15;
+
     @Override
     public void onBatteryLevelChanged(int level, boolean pluggedIn, boolean charging) {
-        if(mGestureView == null || mLowDialBaseLayout == null) return;
-        if(mBatteryLevel == -1 || mBatteryLevel != level){
+        if (mGestureView == null || mLowDialBaseLayout == null) {
+            return;
+        }
+        if (mBatteryLevel == -1 || mBatteryLevel != level) {
             mBatteryLevel = level;
-            ReadboyWearManager rwm = (ReadboyWearManager)Launcher.this.getSystemService(Context.RBW_SERVICE);
             PowerManager mPowerManager = (PowerManager) Launcher.this.getSystemService(Context.POWER_SERVICE);
-            if(mBatteryLevel < lowPowerLevel){//low powe
+            if (mBatteryLevel < lowPowerLevel) {//low powe
                 mGestureView.setVisibility(View.INVISIBLE);
                 mLowDialBaseLayout.setVisibility(View.VISIBLE);
                 mLowDialBaseLayout.addChangedCallback();
@@ -306,10 +347,10 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
                 /*if(!mPowerManager.isPowerSaveMode()){
                     mPowerManager.setPowerSaveMode(true);
                 }*/
-                if(needGoToHOme(Launcher.this,1)){
-                    startActivity(new Intent(Launcher.this,Launcher.class));
+                if (needGoToHome(Launcher.this, 1)) {
+                    startActivity(new Intent(Launcher.this, Launcher.class));
                 }
-            } else{
+            } else {
                 mGestureView.setVisibility(View.VISIBLE);
                 mLowDialBaseLayout.setVisibility(View.INVISIBLE);
                 rwm.setLowPowerMode(false);
@@ -318,16 +359,15 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
                 }*/
             }
         } else {
-			ReadboyWearManager rwm = (ReadboyWearManager)Launcher.this.getSystemService(Context.RBW_SERVICE);
             PowerManager mPowerManager = (PowerManager) Launcher.this.getSystemService(Context.POWER_SERVICE);
-			if(level < lowPowerLevel /*&& !mPowerManager.isPowerSaveMode()*/) {
-				rwm.setLowPowerMode(true);
-				/*mPowerManager.setPowerSaveMode(true);*/
-			} else if(level >= lowPowerLevel /*&& mPowerManager.isPowerSaveMode()*/) {
-				rwm.setLowPowerMode(false);
-				/*mPowerManager.setPowerSaveMode(false);*/
-			}
-		}
+            if (level < lowPowerLevel /*&& !mPowerManager.isPowerSaveMode()*/) {
+                rwm.setLowPowerMode(true);
+                /*mPowerManager.setPowerSaveMode(true);*/
+            } else if (level >= lowPowerLevel /*&& mPowerManager.isPowerSaveMode()*/) {
+                rwm.setLowPowerMode(false);
+                /*mPowerManager.setPowerSaveMode(false);*/
+            }
+        }
     }
 
     @Override
@@ -337,44 +377,39 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if(WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENING ||
-                WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENED){
+        if (WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENING ||
+                WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENED) {
             return false;
         }
         int cur = mViewpager.getCurrentItem();
-        if(e1 == null || e2 == null || cur != 1){
+        if (e1 == null || e2 == null || cur != 1) {
             return false;
         }
 
         float vDistance = e1.getY() - e2.getY();
         boolean bVerticalMove = Math.abs(velocityX) - Math.abs(velocityY) < 0;
-        if (!bVerticalMove|| mViewPagerScrollState != ViewPager.SCROLL_STATE_IDLE){
-            return false;
-        }
-        if(vDistance > mTouchSlopSquare / 5){
-            ReadboyWearManager rwm = (ReadboyWearManager)Launcher.this.getSystemService(Context.RBW_SERVICE);
+        if (vDistance > mTouchSlopSquare / 5 && bVerticalMove && mViewPagerScrollState == ViewPager.SCROLL_STATE_IDLE) {
             PersonalInfo info = rwm.getPersonalInfo();
-            if(info != null && info.isHasSiri() == 1){
+            if (info != null && info.isHasSiri() == 1) {
                 Log.e(TAG, "onFling: start Speech activity.");
-                Utils.startActivity(Launcher.this,"com.readboy.watch.speech","com.readboy.watch.speech.Main2Activity");
+                Utils.startActivity(Launcher.this, "com.readboy.watch.speech", "com.readboy.watch.speech.Main2Activity");
             } else {
-                Utils.startActivity(Launcher.this,"com.android.settings","com.readboy.settings.qrcode.MainActivity");
+                Utils.startActivity(Launcher.this, "com.android.settings", "com.readboy.settings.qrcode.MainActivity");
             }
             return true;
-        }else if(vDistance < -mTouchSlopSquare/2){
+        } else if (vDistance < -mTouchSlopSquare / 2 && bVerticalMove && mViewPagerScrollState == ViewPager.SCROLL_STATE_IDLE) {
             /*boolean isEnable = ((LauncherApplication) LauncherApplication.getApplication()).getWatchController().isNowEnable();*/
-            ReadboyWearManager rwm = (ReadboyWearManager)Launcher.this.getSystemService(Context.RBW_SERVICE);
             boolean isEnable = rwm.isClassForbidOpen();
-            if(isEnable){
+            if (isEnable) {
                 ClassDisableDialog.showClassDisableDialog(Launcher.this);
                 Utils.checkAndDealWithAirPlanMode(Launcher.this);
                 return true;
             }
-            if(!isNotificationEnabled()){
+            if (!isNotificationEnabled()) {
                 startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
-            }else {
-                startActivity(new Intent(Launcher.this,NotificationActivity.class));
-                Log.d(TAG,"lzx switchToFragment");
+            } else {
+                startActivity(new Intent(Launcher.this, NotificationActivity.class));
+                Log.d(TAG, "lzx switchToFragment");
                 //Utils.startActivity(Launcher.this, "com.readboy.wearlauncher",NotificationActivity.class.getName());
                 //((Launcher)getActivity()).switchToFragment(NotificationFragment.class.getName(),null,true,true);
             }
@@ -387,8 +422,8 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        if(WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENING ||
-                WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENED){
+        if (WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENING ||
+                WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENED) {
             mGestureView.setIsGestureDrag(true);
             closeDials(true);
             mWatchType = LauncherSharedPrefs.getWatchType(Launcher.this);
@@ -399,12 +434,12 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
 
     @Override
     public void onLongPress(MotionEvent e) {
-        if(WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENING ||
-                WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENED){
+        if (WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENING ||
+                WatchDials.getWatchDialsStatus() == WatchDials.ANIMATE_STATE_OPENED) {
             return;
         }
         int cur = mViewpager.getCurrentItem();
-        if(cur == 1){
+        if (cur == 1) {
             mGestureView.setIsGestureDrag(true);
             openDials();
         }
@@ -413,11 +448,11 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
     @Override
     public void onClick(int position) {
         AppInfo info = mAppView.getAppInfo(position);
-        Utils.startActivity(Launcher.this,info.mPackageName, info.mClassName);
+        Utils.startActivity(Launcher.this, info.mPackageName, info.mClassName);
     }
 
     @Override
-    public Loader<ArrayList<AppInfo>>  onCreateLoader(int id, Bundle args) {
+    public Loader<ArrayList<AppInfo>> onCreateLoader(int id, Bundle args) {
         if (id != LOADER_ID) {
             return null;
         }
@@ -427,7 +462,7 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
     @Override
     public void onLoadFinished(Loader<ArrayList<AppInfo>> loader, ArrayList<AppInfo> appInfos) {
         if (loader.getId() == LOADER_ID) {
-            Log.d("cwj", "onLoadFinished: "+appInfos);
+            Log.d("cwj", "onLoadFinished: " + appInfos);
             mAppView.refreshData(appInfos);
         }
     }
@@ -439,8 +474,8 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
 
     @Override
     public void onScreenOff() {
-        if(mGestureView != null && mGestureView.getVisibility() == View.VISIBLE && isHome(Launcher.this)
-                && mViewpager.getCurrentItem() != 1){
+        if (mGestureView != null && mGestureView.getVisibility() == View.VISIBLE && isHome(Launcher.this)
+                && mViewpager.getCurrentItem() != 1) {
             mViewpager.setCurrentItem(1);
         }
     }
@@ -492,7 +527,7 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         public int getItemPosition(Object object) {
             if (object != null && object instanceof View) {
                 try {
-                    int objPagerIdx = (Integer)((View)object).getTag(R.id.launcher_viewpager_pager_postion_id);
+                    int objPagerIdx = (Integer) ((View) object).getTag(R.id.launcher_viewpager_pager_postion_id);
                     if (nowPagerNumber == objPagerIdx) {
                         return POSITION_NONE;
                     }
@@ -508,19 +543,31 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
             //Log.e("", "====divhee==setNowPagerNumber=="+nowPagerNumber);
         }
 
-        public int getNowPagerNumber(){
+        public int getNowPagerNumber() {
             return nowPagerNumber;
         }
         // add by divhee end
     }
 
-    public Handler mHandler = new Handler(){
+    public Handler mHandler = new Handler() {
         @Override
         public void dispatchMessage(Message msg) {
-            if(mGestureView != null && mGestureView.getVisibility() == View.VISIBLE && mViewpager.getCurrentItem() == 2){
+            if (mGestureView != null && mGestureView.getVisibility() == View.VISIBLE && mViewpager.getCurrentItem() == 2) {
                 mViewpager.setCurrentItem(1);
             }
             super.dispatchMessage(msg);
+        }
+    };
+    public Handler myHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case WAIT_IRWS:
+                    waitIRWS();
+                    break;
+                default:
+                    break;
+            }
         }
     };
 
@@ -528,7 +575,7 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         String pkgName = this.getPackageName();
         final String flat = Settings.Secure.getString(Launcher.this.getContentResolver(),
                 "enabled_notification_listeners");
-        Log.d(TAG,"notification flat:"+flat);
+        Log.d(TAG, "notification flat:" + flat);
         if (!TextUtils.isEmpty(flat)) {
             final String[] names = flat.split(":");
             for (int i = 0; i < names.length; i++) {
@@ -543,53 +590,55 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         return false;
     }
 
-    private void forceUpdateDate(){
+    private void forceUpdateDate() {
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int week = (calendar.get(Calendar.DAY_OF_WEEK) - 1) % WatchController.WEEK_NAME_CN_SHORT.length;
-        if(mLowDialBaseLayout != null && mLowDialBaseLayout.isShown()){
-            mLowDialBaseLayout.onDateChange(year,month,day,week);
+        if (mLowDialBaseLayout != null && mLowDialBaseLayout.isShown()) {
+            mLowDialBaseLayout.onDateChange(year, month, day, week);
         }
-        if(mDaialView != null && mDaialView.isShown()){
+        if (mDaialView != null && mDaialView.isShown()) {
             View view = mDaialView.getChildAt(0);
-            if(view instanceof DialBaseLayout){
-                ((DialBaseLayout)view).onDateChange(year,month,day,week);
+            if (view instanceof DialBaseLayout) {
+                ((DialBaseLayout) view).onDateChange(year, month, day, week);
             }
         }
     }
 
-    private void dialPasue(){
-        if(mLowDialBaseLayout != null && mLowDialBaseLayout.isShown()){
+    private void dialPasue() {
+        if (mLowDialBaseLayout != null && mLowDialBaseLayout.isShown()) {
             mLowDialBaseLayout.onPause();
             mLowDialBaseLayout.removeChangedCallback();
         }
-        if(mDaialView != null && mDaialView.isShown()){
+        if (mDaialView != null /*&& mDaialView.isShown()*/) {
             View view = mDaialView.getChildAt(0);
-            if(view instanceof DialBaseLayout){
-                ((DialBaseLayout)view).onPause();
-                ((DialBaseLayout)view).removeChangedCallback();
+            if (view instanceof DialBaseLayout) {
+                ((DialBaseLayout) view).onPause();
+                ((DialBaseLayout) view).removeChangedCallback();
             }
         }
     }
 
-    private void dialResume(){
-        Log.d("cwj","dialResume" );
-        if(mLowDialBaseLayout != null && mLowDialBaseLayout.isShown()){
+    private void dialResume() {
+        Log.d("cwj", "dialResume");
+        if (mLowDialBaseLayout != null && mLowDialBaseLayout.isShown()) {
             mLowDialBaseLayout.onResume();
             mLowDialBaseLayout.addChangedCallback();
         }
-        if(mDaialView != null && mDaialView.isShown()){
+        if (mDaialView != null /*&& mDaialView.isShown()*/) {
             View view = mDaialView.getChildAt(0);
-            if(view instanceof DialBaseLayout){
-                ((DialBaseLayout)view).onResume();
-                ((DialBaseLayout)view).addChangedCallback();
+            if (view instanceof DialBaseLayout) {
+                if (mViewpager.getCurrentItem() == 1) {
+                    ((DialBaseLayout) view).onResume();
+                }
+                ((DialBaseLayout) view).addChangedCallback();
             }
         }
     }
 
-    private void forceCloseWakeLock(){
+    private void forceCloseWakeLock() {
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "My Tag");
         synchronized (TAG) {
@@ -615,13 +664,13 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
             try {
                 Intent eintent = new Intent(tmp);
                 Launcher.this.startService(eintent);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private void loadApps(boolean reLoad){
+    private void loadApps(boolean reLoad) {
         if (reLoad) {
             getSupportLoaderManager().restartLoader(LOADER_ID, null, this);
         } else {
@@ -629,27 +678,27 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         }
     }
 
-    private void openDials(){
+    private void openDials() {
         mWatchDials = WatchDials.fromXml(Launcher.this);
         mGestureView.cancelLongPress();
         mGestureView.addView(mWatchDials);
         mWatchDials.animateOpen();
     }
 
-    private void closeDials(boolean saveMode){
-        if(mWatchDials != null && mWatchDials.isShown()){
+    private void closeDials(boolean saveMode) {
+        if (mWatchDials != null && mWatchDials.isShown()) {
             mWatchDials.animateClose(saveMode);
         }
     }
 
-    private void setDialFromType(int type){
+    private void setDialFromType(int type) {
         View view = mDaialView.getChildAt(0);
-        if(view instanceof DialBaseLayout){
-            ((DialBaseLayout)view).onPause();
-            ((DialBaseLayout)view).removeChangedCallback();
+        if (view instanceof DialBaseLayout) {
+            ((DialBaseLayout) view).onPause();
+            ((DialBaseLayout) view).removeChangedCallback();
         }
         mDaialView.removeAllViews();
-        DialBaseLayout childDaialView = (DialBaseLayout) mInflater.inflate(WatchDials.mDialList.get(type%WatchDials.mDialList.size()), mDaialView, false);
+        DialBaseLayout childDaialView = (DialBaseLayout) mInflater.inflate(WatchDials.mDialList.get(type % WatchDials.mDialList.size()), mDaialView, false);
         childDaialView.addChangedCallback();
         childDaialView.onResume();
         childDaialView.setButtonEnable();
@@ -658,25 +707,25 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         dialResume();
     }
 
-    private boolean needGoToHOme(Context context,int type){
-        ActivityManager manager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE) ;
+    private boolean needGoToHome(Context context, int type) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> runningTask = manager.getRunningTasks(1);
         String _pkgName = null;
         String topActivityName = null;
-        if(runningTask!=null){
+        if (runningTask != null) {
             _pkgName = runningTask.get(0).topActivity.getPackageName();
             topActivityName = runningTask.get(0).topActivity.getClassName();
-        }else{
+        } else {
             return false;
         }
 
-        if(_pkgName != null && topActivityName!=null){
-            if(type == 1 && _pkgName.equals("com.android.dialer") ){
+        if (_pkgName != null && topActivityName != null) {
+            if (type == 1 && _pkgName.equals("com.android.dialer")) {
                 return false;
-            } else if(_pkgName.equals("com.android.dialer") && topActivityName.equals("com.android.incallui.InCallActivity")){
+            } else if (_pkgName.equals("com.android.dialer") && topActivityName.equals("com.android.incallui.InCallActivity")) {
                 mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
                 return false;
-            }else if(_pkgName.equals("com.readboy.wearlauncher") && topActivityName.equals("com.readboy.wearlauncher.Launcher")){
+            } else if (_pkgName.equals("com.readboy.wearlauncher") && topActivityName.equals("com.readboy.wearlauncher.Launcher")) {
                 return false;
             }
         }
@@ -684,24 +733,23 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         return true;
     }
 
-    private PhoneStateListener mPhoneStateListener = new PhoneStateListener(){
+    private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
         @Override
         public void onCallStateChanged(int state, String incomingNumber) {
-            if (state == TelephonyManager.CALL_STATE_IDLE){
-                Log.e("cwj", "needGoToHOme state "+ state+" "+TelephonyManager.CALL_STATE_IDLE);
+            if (state == TelephonyManager.CALL_STATE_IDLE) {
+                Log.e("cwj", "needGoToHome state " + state + " " + TelephonyManager.CALL_STATE_IDLE);
                 mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
                 mHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         /*boolean isEnable = ((LauncherApplication)
                                 LauncherApplication.getApplication()).getWatchController().isNowEnable();*/
-			            ReadboyWearManager rwm = (ReadboyWearManager)Launcher.this.getSystemService(Context.RBW_SERVICE);
-			            boolean isEnable = rwm.isClassForbidOpen();
-                        Log.e("cwj", "needGoToHOme isEnable "+ isEnable);
-                        if(isEnable){
-                            startActivity(new Intent(Launcher.this,Launcher.class));
-                            Log.e("cwj", "needGoToHOme startActivity");
-                            if(isHome(Launcher.this)){
+                        boolean isEnable = rwm.isClassForbidOpen();
+                        Log.e("cwj", "needGoToHome isEnable " + isEnable);
+                        if (isEnable) {
+                            startActivity(new Intent(Launcher.this, Launcher.class));
+                            Log.e("cwj", "needGoToHome startActivity");
+                            if (isHome(Launcher.this)) {
                                 ClassDisableDialog.showClassDisableDialog(Launcher.this);
                             }
                         }
@@ -711,17 +759,17 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
         }
     };
 
-    private boolean isHome(Context context){
-        ActivityManager manager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE) ;
+    private boolean isHome(Context context) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> runningTask = manager.getRunningTasks(1);
         String _pkgName = null;
         String topActivityName = null;
-        if(runningTask!=null){
+        if (runningTask != null) {
             _pkgName = runningTask.get(0).topActivity.getPackageName();
             topActivityName = runningTask.get(0).topActivity.getClassName();
         }
-        if(_pkgName != null && topActivityName!=null){
-             if(_pkgName.equals("com.readboy.wearlauncher") && topActivityName.equals("com.readboy.wearlauncher.Launcher")){
+        if (_pkgName != null && topActivityName != null) {
+            if (_pkgName.equals("com.readboy.wearlauncher") && topActivityName.equals("com.readboy.wearlauncher.Launcher")) {
                 return true;
             }
         }
@@ -730,7 +778,7 @@ public class Launcher extends FragmentActivity implements BatteryController.Batt
 
     private Fragment getVisibleFragment(FragmentManager fragmentManager) {
         List<Fragment> fragments = fragmentManager.getFragments();
-        if(fragments == null){
+        if (fragments == null) {
             return null;
         }
         for (Fragment fragment : fragments) {

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/item_float_notification_parent"
+    android:layout_width="220px"
+    android:layout_height="70px"
+    android:background="@drawable/bg_float_notification">
+    <ImageView
+        android:id="@+id/small_icon"
+        android:layout_width="45px"
+        android:layout_height="45px"
+        android:layout_marginLeft="10px"
+        android:layout_marginTop="12.5px"/>
+
+    <TextView
+        android:id="@+id/content_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8px"
+        android:layout_marginTop="8px"
+        android:layout_toRightOf="@+id/small_icon"
+        android:maxLines="1"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="18px"
+        tools:text="未接来电" />
+
+    <com.readboy.wearlauncher.notification.DateTimeView
+        android:id="@+id/content_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10px"
+        android:layout_marginRight="8px"
+        android:layout_alignParentRight="true"
+        android:textColor="@color/gray_dark"
+        android:textSize="16px"
+        tools:text="09:30" />
+
+    <TextView
+        android:id="@+id/content_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/content_title"
+        android:layout_alignBottom="@+id/small_icon"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/gray_dark"
+        android:textSize="18px"
+        tools:text="1868888666" />
+
+</RelativeLayout>

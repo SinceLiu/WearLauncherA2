@@ -59,8 +59,8 @@ public class OverScrollDecoratorHelper {
         }
     }
 
-    public static IOverScrollDecor setUpOverScroll(ViewPager viewPager, ViewPager.OnPageChangeListener oldListener) {
-        return new HorizontalOverScrollBounceEffectDecorator(new ViewPagerOverScrollDecorAdapter(viewPager, oldListener));
+    public static IOverScrollDecor setUpOverScroll(ViewPager viewPager) {
+        return new HorizontalOverScrollBounceEffectDecorator(new ViewPagerOverScrollDecorAdapter(viewPager));
     }
 
 }

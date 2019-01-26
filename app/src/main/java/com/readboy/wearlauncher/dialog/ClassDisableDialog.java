@@ -55,11 +55,13 @@ public class ClassDisableDialog {
 
     public static void recycle(){
         mHandler.removeMessages(0x10);
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
         dialog = null;
     }
 
     public static void dismissClassDisableDialog() {
-        Log.e(TAG, "dismissClassDisableDialog: ");
         if (!isValidContext(mContext)) {
             Log.e(TAG, "dismissClassDisableDialog: context is disabled");
             mHandler.removeMessages(0x10);
@@ -77,10 +79,8 @@ public class ClassDisableDialog {
 
     private static boolean isValidContext(Context c) {
         if (c instanceof Activity) {
-            Log.e(TAG, "isValidContext: activity");
             Activity a = (Activity) c;
             if (a.isDestroyed() || a.isFinishing()) {
-                Log.e(TAG, "isValidContext: false");
                 return false;
             } else {
                 return true;
